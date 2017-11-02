@@ -1,0 +1,5 @@
+height=108
+width=36
+xdiv=9
+ydiv=4
+EXT=1
