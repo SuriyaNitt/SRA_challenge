@@ -3,7 +3,7 @@
  * Date   26-04-2013
  */
 
-#include "gradientcalculator.h"
+#include "gradient_calculator.h"
 
 
 GradientCalculator::GradientCalculator()
