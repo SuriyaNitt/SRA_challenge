@@ -43,8 +43,8 @@
 #ifndef INPAINTER_H
 #define INPAINTER_H
 
-#include "opencv/core/core.hpp"
-#include "opencv/highgui/highgui.hpp"
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
 
 class Inpainter
 {

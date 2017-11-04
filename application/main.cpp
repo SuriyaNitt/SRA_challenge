@@ -10,11 +10,15 @@
 #include "inpainter.h"
 
 cv::Point gClick(-1, -1);
-int gWaitTime = 0;
+int gWaitTime = 30;
 
 void on_mouse(int event, int x, int y, int flags, void *param) {
     if (event == cv::EVENT_LBUTTONDOWN) {
         gClick = cv::Point(x, y);
+    }
+    else if( event == cv::EVENT_MOUSEMOVE && (flags & cv::EVENT_FLAG_LBUTTON) )
+    {
+        gClick = cv::Point(x,y);
     }
 }
 
@@ -61,10 +65,12 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    cv::namedWindow("Intelligent Inpainting", 1);
-    cv::imshow("Input Image", inputImage);
-    cv::waitKey(5000);
-    cv::setMouseCallback("Input Image", on_mouse, 0);
+    cv::namedWindow("IIP", 1);
+    cv::imshow("IIP", inputImage);
+    while (gClick.x == -1) {
+        cv::waitKey(10);
+        cv::setMouseCallback("IIP", on_mouse, 0);
+    }
 
     /**********************************************
     * Human detection and extraction from the click
@@ -81,6 +87,8 @@ int main(int argc, char *argv[])
 
     cv::imshow("result", image1);
     cv::waitKey(gWaitTime);
+    cv::imshow("targetHuman", targetHumanImage);
+    cv::waitKey(gWaitTime);
 
     /**********************************************
     * Human Contour detection
@@ -92,20 +100,25 @@ int main(int argc, char *argv[])
     cv::globalPb(targetHumanImage, gPb, gPb_thin, gPb_ori);
     cv::contour2ucm(gPb, gPb_ori, ucm, SINGLE_SIZE);
 
-    /**********************************************
-    * Image inpainting, exemplar
-    ***********************************************/
-    cv::Mat mask   = inputImage.clone();
-    cv::Mat image2 = inputImage.clone();
-    Inpainter i(image2, mask, 3);
-    if (i.checkValidInputs() == i.CHECK_VALID) {
-        i.inpaint();
-        cv::imwrite("edited_output.jpg", i.result);
-        cv::imshow("Edited Output", i.result);
-    }
-    else {
-        std::cout<<std::endl<<"Error : invalid parameters"<<std::endl;
-    }
+    cv::imshow("ucm", ucm);
+    cv::waitKey(gWaitTime*200);
+
+     
+
+    // /**********************************************
+    // * Image inpainting, exemplar
+    // ***********************************************/
+    // cv::Mat mask   = inputImage.clone();
+    // cv::Mat image2 = inputImage.clone();
+    // Inpainter i(image2, mask, 3);
+    // if (i.checkValidInputs() == i.CHECK_VALID) {
+    //     i.inpaint();
+    //     cv::imwrite("edited_output.jpg", i.result);
+    //     cv::imshow("Edited Output", i.result);
+    // }
+    // else {
+    //     std::cout<<std::endl<<"Error : invalid parameters"<<std::endl;
+    // }
 
     return 0;
 }
