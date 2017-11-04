@@ -94,15 +94,14 @@ public:
     int index;
     std::string fileName;
 
-    Node(const NodeType _type,const int _featurelength,const int _upper_bound,const int _index,const char* _filename);
-    ~Node(){}
+    Node(const NodeType _type, const int _featurelength, \
+         const int _upper_bound, const int _index, const char* _filename);
+    ~Node();
 
-    void load(const NodeType _type,const int _featurelength,const int _upper_bound,const int _index,const char* _filename);
+    void load(const NodeType _type, const int _featurelength, \
+              const int _upper_bound, const int _index, const char* _filename);
     bool classify(int* f);
-    void setValues(const double v) {
-        if(v>maxvalue) maxvalue = v;
-        if(v<minvalue) minvalue = v;
-    }
+    void setValues(const double v);
 };
 
 class Cascade {

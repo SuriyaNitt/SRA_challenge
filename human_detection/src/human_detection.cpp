@@ -15,12 +15,13 @@ std::vector<cv::Rect> human_detection(cv::Mat &image) {
     std::vector<cv::Rect> detections;
     std::unordered_map<std::string, double> config = parse_config("./config.txt");
 
-    int height = config["height"];
-    int width  = config["width"];
-    int xdiv   = config["xdiv"];
-    int ydiv   = config["ydiv"];
+    int height = 108;//config["height"];
+    int width  = 36;//config["width"];
+    int xdiv   = 9;//config["xdiv"];
+    int ydiv   = 4;//config["ydiv"];
 
     Detector detector(height, width, xdiv, ydiv, 256, 0.8);
+    loadCascade(detector);
     IntImage<double> inputIntImage;
     inputIntImage.load(inputImage);
     detector.fastScan(inputIntImage, results, 2);

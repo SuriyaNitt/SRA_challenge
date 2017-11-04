@@ -5,8 +5,11 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "human_detection.h"
+#include "globalPb.h"
+#include "contour2ucm.h"
 
 cv::Point gClick(-1, -1);
+int gWaitTime = 0;
 
 void on_mouse(int event, int x, int y, int flags, void *param) {
     if (event == cv::EVENT_LBUTTONDOWN) {
@@ -59,6 +62,7 @@ int main(int argc, char *argv[])
 
     cv::namedWindow("Intelligent Inpainting", 1);
     cv::imshow("Input Image", inputImage);
+    cv::waitKey(5000);
     cv::setMouseCallback("Input Image", on_mouse, 0);
 
     /**********************************************
@@ -69,15 +73,23 @@ int main(int argc, char *argv[])
     std::vector<cv::Rect> humans = human_detection(image1);
     cv::Mat targetHumanImage = extract_human(image1, humans);
 
+    for(size_t i = 0; i < humans.size(); i++)
+    {
+        cv::rectangle(image1, cvPoint(humans[i].x,humans[i].y),cvPoint(humans[i].x + humans[i].width, humans[i].y + humans[i].height),cv::Scalar(0,255,0),2 );
+    }
+
+    cv::imshow("result", image1);
+    cv::waitKey(gWaitTime);
+
     /**********************************************
     * Human Contour detection
     ***********************************************/    
 
-    // cv::Mat gPb, gPb_thin, ucm;
-    // vector<cv::Mat> gPb_ori;
+    cv::Mat gPb, gPb_thin, ucm;
+    std::vector<cv::Mat> gPb_ori;
 
-    // cv::globalPb(img0, gPb, gPb_thin, gPb_ori);
-    // cv::contour2ucm(gPb, gPb_ori, ucm, SINGLE_SIZE)
+    cv::globalPb(targetHumanImage, gPb, gPb_thin, gPb_ori);
+    cv::contour2ucm(gPb, gPb_ori, ucm, SINGLE_SIZE);
 
     /**********************************************
     * Image inpainting, exemplar

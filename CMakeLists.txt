@@ -6,21 +6,22 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
 find_package(OpenCV  REQUIRED)
+set(EXTRA_LIBS "-larpack" "-lparpack" "-lgfortran")
 
-set(SRCS
-    "human_detection/src/human_detection.cpp"
-    "human_detection/src/human_detector.cpp"
-    "human_detection/src/config_parser.cpp"
-    # "contour_estimation/include/*.hpp"
-    # "contour_estimation/src/*.cpp"
-    # "scene_completion/include/*.hpp"
-    # "scene_completion/src/*.cpp"
+file ( GLOB SRCS
+     "human_detection/src/*.cpp"
+     "contour_estimation/src/gPb/*.cpp"
+     "contour_estimation/src/seg/*.cpp"
+     "contour_estimation/src/sPb/*.cpp"
+     "scene_completion/src/*.cpp"
     )
 
 include_directories (
     "human_detection/include"
-    # "contour_estimation/include/"
-    # "scene_completion/include"
+    "contour_estimation/include/seg"
+    "contour_estimation/include/gPb"
+    "contour_estimation/include/sPb"
+    "scene_completion/include"
 )
 
 ADD_EXECUTABLE (intelligent_inpainting application/main.cpp ${SRCS})
@@ -28,7 +29,7 @@ ADD_EXECUTABLE (intelligent_inpainting application/main.cpp ${SRCS})
 if (OpenCV_FOUND)
     include_directories( ${OpenCV_INCLUDE_DIRS} )
 #   include_directories("${OPENCV_CONFIG_PATH}/include")
-    target_link_libraries( intelligent_inpainting ${OpenCV_LIBS} )
+    target_link_libraries( intelligent_inpainting ${OpenCV_LIBS} ${EXTRA_LIBS})
 else (OpenCV_FOUND)
 message("PB->OPENCV = ${OpenCV_INCLUDE_DIRS}")
 endif (OpenCV_FOUND)

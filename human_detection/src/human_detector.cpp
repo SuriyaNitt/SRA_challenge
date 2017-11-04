@@ -63,6 +63,8 @@ void Array2d<T>::create(const int nrowArg, const int ncolArg) {
     ncol = ncolArg;
     buf = new T[nrow*ncol];
     assert(buf!=NULL);
+    p = new T*[nrow];
+    assert(p!=NULL);
     for(int i=0; i<nrow; i++) p[i] = buf + i * ncol;
 }
 
@@ -356,6 +358,17 @@ bool CRect::Union(CRect& result,const CRect& rect2) const {
 *   Node
 **********************/
 
+Node::Node(const NodeType _type,const int _featurelength,const int _upper_bound,const int _index,const char* _filename)
+{
+    load(_type,_featurelength,_upper_bound,_index,_filename);
+    minvalue = DBL_MAX;
+    maxvalue = -minvalue;
+}
+
+Node::~Node(){
+
+}
+
 void Node::load(const NodeType _type,const int _featurelength,const int _upperBound,const int _index,const char* _filename)
 {
     type = _type;
@@ -370,6 +383,11 @@ void Node::load(const NodeType _type,const int _featurelength,const int _upperBo
 
     if(type==CD_LIN) type = LINEAR;
     if(type==CD_HIK) type = HISTOGRAM;
+}
+
+void Node::setValues(const double v) {
+    if(v>maxvalue) maxvalue = v;
+    if(v<minvalue) minvalue = v;
 }
 
 /*********************
@@ -398,6 +416,9 @@ void Cascade::add_node(const Node::NodeType _type,\
         size = newSize;
         nodes = newNodes;
     }
+
+    nodes[length] = new Node(_type, featureLength, upperBound, length, fileName.c_str());
+    length++;
 }
 
 /*********************
@@ -704,10 +725,10 @@ void loadCascade(Detector& ds)
 
     types.push_back(Node::CD_LIN); // first node
     upperBounds.push_back(100);
-    fileNames.push_back("combined.txt.model");
+    fileNames.push_back("../human_detection/src/combined.txt.model");
     types.push_back(Node::CD_HIK); // second node
     upperBounds.push_back(353);
-    fileNames.push_back("combined.txt.model_");
+    fileNames.push_back("../human_detection/src/combined.txt.model_");
 
     ds.loadDetector(types,upperBounds,fileNames);
     // You can adjust these parameters for different speed, accuracy etc
