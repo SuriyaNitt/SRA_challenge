@@ -14,6 +14,7 @@ file ( GLOB SRCS
      "contour_estimation/src/seg/*.cpp"
      "contour_estimation/src/sPb/*.cpp"
      "scene_completion/src/*.cpp"
+     "enet_segmentation/src/*.cpp"
     )
 
 include_directories (
@@ -21,6 +22,7 @@ include_directories (
     "contour_estimation/include/seg"
     "contour_estimation/include/gPb"
     "contour_estimation/include/sPb"
+    "enet_segmentation/include"
     "scene_completion/include"
 )
 
