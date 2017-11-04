@@ -8,6 +8,7 @@
 #include "globalPb.h"
 #include "contour2ucm.h"
 #include "inpainter.h"
+#include "enet_segmentation.h"
 
 cv::Point gClick(-1, -1);
 int gWaitTime = 30;
@@ -103,7 +104,17 @@ int main(int argc, char *argv[])
     cv::imshow("ucm", ucm);
     cv::waitKey(gWaitTime*200);
 
-     
+    /**********************************************
+    * Enet segmentation
+    ***********************************************/
+
+    char *arguments[] = {"../ENet/enet_deploy_final.prototxt", \
+                    "../ENet/cityscapes_weights.caffemodel", \
+                    "../ENet/cityscapes19.png"};
+    cv::Mat segmentedImage = enet_segmentation(arguments, targetHumanImage);
+
+    cv::imshow("enet", segmentedImage);
+    cv::waitKey(gWaitTime*200);
 
     // /**********************************************
     // * Image inpainting, exemplar

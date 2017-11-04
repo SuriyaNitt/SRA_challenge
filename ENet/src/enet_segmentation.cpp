@@ -14,14 +14,8 @@
  *
  */
 
-
-
 #define USE_OPENCV 1
-#include <caffe/caffe.hpp>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#include "caffe/caffe.hpp"
 
 #include "enet_segmentation.h"
 
@@ -208,21 +202,18 @@ void Classifier::Preprocess(const cv::Mat& img,
     << "Input channels are not wrapping the input layer of the network.";
 }
 
-cv::Mat enet_segmentation(char** argv) {
+cv::Mat enet_segmentation(char** argv, cv::Mat targetHumanImage) {
   string model_file   = argv[0];
   string trained_file = argv[1]; //for visualization
 
 
   Classifier classifier(model_file, trained_file);
+  string LUT_file = argv[2];
 
-  string file = argv[2];
-  string LUT_file = argv[3];
+  std::cout << "---------- Semantic Segmentation for \n";
 
-  std::cout << "---------- Semantic Segmentation for "
-            << file << " ----------" << std::endl;
-
-  cv::Mat img = cv::imread(file, 1);
-  CHECK(!img.empty()) << "Unable to decode image " << file;
+  cv::Mat img = targetHumanImage.clone();
+  CHECK(!img.empty()) << "Unable to decode image \n";
   cv::Mat prediction;
 
   classifier.Predict(img, LUT_file);
