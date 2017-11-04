@@ -1,4 +1,4 @@
-//#include "inpainter.h"
+
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -7,6 +7,7 @@
 #include "human_detection.h"
 #include "globalPb.h"
 #include "contour2ucm.h"
+#include "inpainter.h"
 
 cv::Point gClick(-1, -1);
 int gWaitTime = 0;
@@ -94,16 +95,17 @@ int main(int argc, char *argv[])
     /**********************************************
     * Image inpainting, exemplar
     ***********************************************/
-    // cv::Mat image2 = inputImage.clone();
-    // Inpainter i(image2, mask, 3);
-    // if (i.checkValidInputs() == i.CHECK_VALID) {
-    //     i.inpaint();
-    //     cv::imwrite("edited_output.jpg", i.result);
-    //     cv::imshow("Edited Output", i.result);
-    // }
-    // else {
-    //     std::cout<<std::endl<<"Error : invalid parameters"<<std::endl;
-    // }
+    cv::Mat mask   = inputImage.clone();
+    cv::Mat image2 = inputImage.clone();
+    Inpainter i(image2, mask, 3);
+    if (i.checkValidInputs() == i.CHECK_VALID) {
+        i.inpaint();
+        cv::imwrite("edited_output.jpg", i.result);
+        cv::imshow("Edited Output", i.result);
+    }
+    else {
+        std::cout<<std::endl<<"Error : invalid parameters"<<std::endl;
+    }
 
     return 0;
 }
