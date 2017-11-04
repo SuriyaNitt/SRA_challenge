@@ -1,14 +1,14 @@
-#include "human_detection.h"
+#include "human_detection_private.h"
 #include <fstream>
 
-unordered_map parse_config(string fileName) {
+std::unordered_map<std::string, double> parse_config(std::string fileName) {
     std::ifstream inputFile(fileName);
-    unordered_map<string, double> inputs;
+    std::unordered_map<std::string, double> inputs;
 
     std::string line;
     while (std::getline(inputFile, line)) {
-        std::isstringstream iss(line);
-        string key;
+        std::istringstream iss(line);
+        std::string key;
         double value;
         if (!(iss >> key >> value)) {break;}
         inputs[key] = value;

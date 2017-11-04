@@ -2,11 +2,30 @@
 *   Source file defing the helper classes
 */
 
-#include <human_detector.hpp>
+#include <human_detector.h>
+#include <fstream>
+
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+
+const int HUMAN_height = 108;
+const int HUMAN_width = 36;
+const int HUMAN_xdiv = 9;
+const int HUMAN_ydiv = 4;
+static const int EXT = 1;
 
 /*********************
 *   Array2D
 **********************/
+
+template<class T>
+Array2d<T>::Array2d():nrow(0),ncol(0),p(NULL),buf(NULL) {} //!< default constructor.
+
+template<class T>
+Array2d<T>::Array2d(const int nrow,const int ncol):nrow(0),ncol(0),p(NULL),buf(NULL)
+{
+    create(nrow,ncol);
+} //!< constructor.
 
 template<class T>
 Array2d<T>::Array2d(const Array2d<T>& source):nrow(0),ncol(0),p(NULL) {
@@ -28,6 +47,12 @@ Array2d<T>& Array2d<T>::operator=(const Array2d<T>& source) {
         clear();
     return *this;
 }
+
+template<class T>
+Array2d<T>::~Array2d()
+{
+    clear();
+} //!< virtual destructor to avoid mem. leak.
 
 template<class T>
 void Array2d<T>::create(const int nrowArg, const int ncolArg) {
@@ -63,23 +88,28 @@ void Array2d<T>::clear() {
     nrow = ncol = 0;
 }
 
-template<class T>
-void IntImage<T>::clear(void) {
-    Array2d<T>::clear();
-    variance = 0.0;
-    label = -;
-}
-
 /*********************
 *   IntImage
 **********************/
 
 template<class T>
-bool IntImage<T>::load(cv::Mat img, const char channel) {
+IntImage<T>::~IntImage() {
+    clear();
+} //!< virtual destructor to avoid memory leaks.
+
+template<class T>
+void IntImage<T>::clear(void) {
+    Array2d<T>::clear();
+    variance = 0.0;
+    label = -1;
+}
+
+template<class T>
+bool IntImage<T>::load(cv::Mat img, char channel) {
     if (img.empty()) return false;
     if (channel == 'R' || channel == 'G' || channel == 'B') {
         int c;
-        switch channel {
+        switch (channel) {
             case 'B':
                 c = 0;
                 break;
@@ -93,17 +123,16 @@ bool IntImage<T>::load(cv::Mat img, const char channel) {
         cv::Mat planes[3];
         split(img, planes);
         img = planes[c];
-
-        else {
-            cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
-        }
-        setSize(img.rows, img.cols);
-        for (int i=0,s ih=img.rows, iw=img.cols; i<ih; i++) {
-            T *pdata = p[i];
-            unsigned char* pimg = reinterpret_cast<unsigned char*>(img.data + img.step*i);
-            for (int j=0; j<iw; j++) {
-                pdata[j] = pimg[j];
-            }
+    }
+    else {
+        cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
+    }
+    setSize(img.rows, img.cols);
+    for (int i=0, ih=img.rows, iw=img.cols; i<ih; i++) {
+        T *pdata = p[i];
+        unsigned char* pimg = reinterpret_cast<unsigned char*>(img.data + img.step*i);
+        for (int j=0; j<iw; j++) {
+            pdata[j] = pimg[j];
         }
     }
     return true;
@@ -119,8 +148,8 @@ void IntImage<T>::save(const std::string& fileName) const {
         unsigned char* pimg = reinterpret_cast<unsigned char*>(img->imageData+img->widthStep*i);
         for(int j=0; j<iw; j++) pimg[j] = (unsigned char)pdata[j];
     }
-    cvSaveImage(filename.c_str(),img);
-    cvReleaseImage(&img)
+    cvSaveImage(fileName.c_str(),img);
+    cvReleaseImage(&img);
 }
 
 template<class T>
@@ -141,7 +170,7 @@ IntImage<T>& IntImage<T>::operator=(const IntImage<T>& source) {
 }
 
 template<class T>
-void IntImage<T>::resize(IntImage<T> &result,const REAL ratio) const {
+void IntImage<T>::resize(IntImage<T> &result,const double ratio) const {
     resize(result, int(nrow*ratio), int(ncol*ratio));
 }
 
@@ -158,7 +187,7 @@ void IntImage<T>::resize(IntImage<T>& result,const int height,const int width) c
     assert(p_y0 != NULL);
     for (int i=0; i<width; i++) {
         p_y[i] = i*iyratio;
-        p_y0[i] = (int) py[i];
+        p_y0[i] = (int) p_y[i];
         if(p_y0[i]==ncol-1) p_y0[i]--;
         p_y[i] -= p_y0[i];
     }
@@ -212,13 +241,13 @@ void IntImage<T>::calcIntegralImageInPlace(void) {
 
 template<class T>
 void IntImage<T>::swap(IntImage<T>& image2) {
-    Array2dC<T>::swap(image2);
+    Array2d<T>::swap(image2);
     std::swap(variance, image2.variance);
     std::swap(label, image2.label);
 }
 
 template<class T>
-void IntImage<T>::sobel(IntImage<REAL>& result,const bool useSqrt,const bool normalize) {
+void IntImage<T>::Sobel(IntImage<double>& result,const bool useSqrt,const bool normalize) {
     result.create(nrow,ncol);
     for(int i=0; i<nrow; i++) result.p[i][0] = result.p[i][ncol-1] = 0;
     std::fill(result.p[0],result.p[0]+ncol,0.0);
@@ -265,7 +294,7 @@ void IntImage<T>::sobel(IntImage<REAL>& result,const bool useSqrt,const bool nor
     }
 } 
 //!< compute the Sobel gradient. For now, we just use the very inefficient way. Optimization can be done later
-//!< if useSqrt = true, we compute the real Sobel gradient; otherwise, the square of it
+//!< if useSqrt = true, we compute the double Sobel gradient; otherwise, the square of it
 //!< if normalize = true, the numbers are normalized to be in 0..255
 
 /*********************
@@ -281,7 +310,7 @@ void CRect::clear() {
 }
 
 double CRect::size() const {
-    if(Empty())
+    if(empty())
         return 0;
     else
         return (bottom-top)*(right-left);
@@ -291,7 +320,7 @@ bool CRect::intersect(CRect& result,const CRect& rect2) const {
     if(this->empty() || rect2.empty() || 
        left >= rect2.right || rect2.left >= right ||
        top >= rect2.bottom || rect2.top >= bottom ) {
-        result.Clear();
+        result.clear();
         return false;
     }
     result.left   = std::max( left, rect2.left );
@@ -301,7 +330,7 @@ bool CRect::intersect(CRect& result,const CRect& rect2) const {
     return true;
 }
 
-bool CRect::union(CRect& result,const CRect& rect2) {
+bool CRect::Union(CRect& result,const CRect& rect2) const {
     if(this->empty()) {
         if (rect2.empty()) {
             result.clear();
@@ -327,17 +356,17 @@ bool CRect::union(CRect& result,const CRect& rect2) {
 *   Node
 **********************/
 
-void NodeDetector::Load(const NodeType _type,const int _featurelength,const int _upper_bound,const int _index,const char* _filename)
+void Node::load(const NodeType _type,const int _featurelength,const int _upperBound,const int _index,const char* _filename)
 {
     type = _type;
     index = _index;
-    filename = _filename;
-    featurelength = _featurelength;
-    upper_bound = _upper_bound;
+    fileName = _filename;
+    featureLength = _featurelength;
+    upperBound = _upperBound;
     if(type==CD_LIN)
-        thresh = UseSVM_CD_FastEvaluationStructure(_filename,_featurelength,classifier);
+        thresh = useSVM_CD_FastEvaluationStructure(_filename,_featurelength,classifier);
     else if(type==CD_HIK)
-        thresh = UseSVM_CD_FastEvaluationStructure(_filename,_featurelength,upper_bound,classifier);
+        thresh = useSVM_CD_FastEvaluationStructure(_filename,_featurelength,upperBound,classifier);
 
     if(type==CD_LIN) type = LINEAR;
     if(type==CD_HIK) type = HISTOGRAM;
@@ -375,37 +404,37 @@ void Cascade::add_node(const Node::NodeType _type,\
 *   Detector
 **********************/
 
-void Detector::loadDetector(std::vector<NodeDetector::NodeType>& types,std::vector<int>& upper_bounds,std::vector<std::string>& filenames)
+void Detector::loadDetector(std::vector<Node::NodeType>& types,std::vector<int>& upperBounds,std::vector<std::string>& filenames)
 {
     unsigned int depth = types.size();
-    assert(depth>0 && depth==upper_bounds.size() && depth==filenames.size());
+    assert(depth>0 && depth==upperBounds.size() && depth==filenames.size());
     if(cascade)
         delete cascade;
-    cascade = new CascadeDetector;
+    cascade = new Cascade;
     assert(xdiv>0 && ydiv>0);
     for(unsigned int i=0; i<depth; i++)
-        cascade->AddNode(types[i],(xdiv-EXT)*(ydiv-EXT)*baseflength,upper_bounds[i],filenames[i].c_str());
+        cascade->add_node(types[i],(xdiv-EXT)*(ydiv-EXT)*baseflength,upperBounds[i],filenames[i].c_str());
 
-    hist.Create(1,baseflength*(xdiv-EXT)*(ydiv-EXT));
+    hist.create(1,baseflength*(xdiv-EXT)*(ydiv-EXT));
 }
 
 void Detector::initImage(IntImage<double>& original)
 {
     image = original;
-    image.sobel(sobel,false,false);
-    computeCT(sobel,ct);
+    image.Sobel(sobelImage, false, false);
+    computeCT(sobelImage, ct);
 }
 //!< initialization -- compute the Census Tranform image for CENTRIST
 
-void DetectionScanner::InitIntegralImages(const int stepsize)
+void Detector::initIntegralImages(const int stepsize)
 {
     if(cascade->nodes[0]->type!=Node::LINEAR)
         return; // No need to prepare integral images
 
     const int hd = height/xdiv*2-2;
     const int wd = width/ydiv*2-2;
-    scores.Create(ct.nrow,ct.ncol);
-    scores.Zero(cascade->nodes[0]->thresh/hd/wd);
+    scores.create(ct.nrow,ct.ncol);
+    scores.zero(cascade->nodes[0]->thresh/hd/wd);
     double* linearweights = cascade->nodes[0]->classifier.buf;
     for(int i=0; i<xdiv-EXT; i++)
     {
@@ -423,7 +452,7 @@ void DetectionScanner::InitIntegralImages(const int stepsize)
             linearweights += baseflength;
         }
     }
-    scores.CalcIntegralImageInPlace();
+    scores.calcIntegralImageInPlace();
     for(int i=2; i<ct.nrow-2-height; i+=stepsize)
     {
         double* p1 = scores.p[i];
@@ -433,29 +462,29 @@ void DetectionScanner::InitIntegralImages(const int stepsize)
     }
 }
 
-void DetectionScanner::ResizeImage() {
-    image.Resize(sobel,ratio);
-    image.Swap(sobel);
-    image.Sobel(sobel,false,false);
-    ComputeCT(sobel,ct);
+void Detector::resizeImage() {
+    image.resize(sobelImage,ratio);
+    image.swap(sobelImage);
+    image.Sobel(sobelImage,false,false);
+    computeCT(sobelImage,ct);
 }
 
-int DetectionScanner::FastScan(IntImage<double>& original,std::vector<CRect>& results,const int stepsize) {
+int Detector::fastScan(IntImage<double>& original,std::vector<CRect>& results,const int stepsize) {
     if(original.nrow<height+5 || original.ncol<width+5) return 0;
     const int hd = height/xdiv;
     const int wd = width/ydiv;
-    InitImage(original);
+    initImage(original);
     results.clear();
 
-    hist.Create(1,baseflength*(xdiv-EXT)*(ydiv-EXT));
+    hist.create(1,baseflength*(xdiv-EXT)*(ydiv-EXT));
 
-    NodeDetector* node = cascade->nodes[1];
+    Node* node = cascade->nodes[1];
     double** pc = node->classifier.p;
     int oheight = original.nrow, owidth = original.ncol;
     CRect rect;
     while(image.nrow>=height && image.ncol>=width)
     {
-        InitIntegralImages(stepsize);
+        initIntegralImages(stepsize);
         for(int i=2; i+height<image.nrow-2; i+=stepsize)
         {
             const double* sp = scores.p[i];
@@ -463,7 +492,7 @@ int DetectionScanner::FastScan(IntImage<double>& original,std::vector<CRect>& re
             {
                 if(sp[j]<=0) continue;
                 int* p = hist.buf;
-                hist.Zero();
+                hist.zero();
                 for(int k=0; k<xdiv-EXT; k++)
                 {
                     for(int t=0; t<ydiv-EXT; t++)
@@ -489,7 +518,7 @@ int DetectionScanner::FastScan(IntImage<double>& original,std::vector<CRect>& re
                 }
             }
         }
-        ResizeImage();
+        resizeImage();
     }
     return 0;
 }
@@ -519,12 +548,12 @@ void computeCT(IntImage<double>& original,IntImage<int>& ct)
     }
 }
 
-double useSVM_CD_FastEvaluationStructure(const char* modelfile,const int m,Array2dC<double>& result)
+double useSVM_CD_FastEvaluationStructure(const char* modelFile,const int m,Array2d<double>& result)
 {
-    std::ifstream in(modelfile);
+    std::ifstream in(modelFile);
     if(in.good()==false)
     {
-        std::cout<<"SVM model "<<modelfile<<" can not be loaded."<<std::endl;
+        std::cout<<"SVM model "<<modelFile<<" can not be loaded."<<std::endl;
         exit(-1);
     }
     std::string buffer;
@@ -545,7 +574,7 @@ double useSVM_CD_FastEvaluationStructure(const char* modelfile,const int m,Array
     in>>buffer;
     assert(buffer=="w");
     std::getline(in,buffer); //end of line 6
-    result.Create(1,num_dim);
+    result.create(1,num_dim);
     for(int i=0; i<num_dim; i++) in>>result.buf[i];
     double rho = 0;
     if(bias>=0) in>>rho;
@@ -553,13 +582,13 @@ double useSVM_CD_FastEvaluationStructure(const char* modelfile,const int m,Array
     return rho;
 }
 
-double useSVM_CD_FastEvaluationStructure(const char* modelfile, const int m, const int upper_bound, Array2dC<double>& result)
+double useSVM_CD_FastEvaluationStructure(const char* modelFile, const int m, const int upperBound, Array2d<double>& result)
 {
 
-    std::ifstream fs(modelfile, std::fstream::binary);
+    std::ifstream fs(modelFile, std::fstream::binary);
     if( !fs.is_open() )
     {
-        std::cout << "SVM model " << modelfile << " can not be loaded." << std::endl;
+        std::cout << "SVM model " << modelFile << " can not be loaded." << std::endl;
         exit(-1);
     }
     // Header
@@ -575,9 +604,9 @@ double useSVM_CD_FastEvaluationStructure(const char* modelfile, const int m, con
 
     int num_dim = m;
 
-    result.Create(num_dim, upper_bound);
+    result.create(num_dim, upperBound);
     for(int i=0; i<num_dim; i++)
-        for (int j = 0; j < upper_bound; j++)
+        for (int j = 0; j < upperBound; j++)
         {
             result.p[i][j]= mat.at<double>(i, j);
         }
@@ -606,7 +635,7 @@ void postProcess(std::vector<CRect>& result,const int combine_min) {
                   )
                 {
                     CRect& res1_j = res1[j];
-                    resmax_j.union(resmax_j,result_i);
+                    resmax_j.Union(resmax_j,result_i);
                     res1_j.bottom += result_i.bottom;
                     res1_j.top += result_i.top;
                     res1_j.left += result_i.left;
@@ -641,7 +670,7 @@ void postProcess(std::vector<CRect>& result,const int combine_min) {
             result.push_back(res1[i]);
 }
 
-void RemoveCoveredRectangles(std::vector<CRect>& result) {
+void removeCoveredRectangles(std::vector<CRect>& result) {
     std::vector<bool> covered;
     covered.resize(result.size());
     std::fill(covered.begin(),covered.end(),false);
@@ -674,14 +703,21 @@ void loadCascade(Detector& ds)
     std::vector<std::string> fileNames;
 
     types.push_back(Node::CD_LIN); // first node
-    upper_bounds.push_back(100);
-    filenames.push_back("combined.txt.model");
+    upperBounds.push_back(100);
+    fileNames.push_back("combined.txt.model");
     types.push_back(Node::CD_HIK); // second node
-    upper_bounds.push_back(353);
-    filenames.push_back("combined.txt.model_");
+    upperBounds.push_back(353);
+    fileNames.push_back("combined.txt.model_");
 
-    ds.loadDetector(types,upper_bounds,filenames);
+    ds.loadDetector(types,upperBounds,fileNames);
     // You can adjust these parameters for different speed, accuracy etc
     ds.cascade->nodes[0]->thresh += 0.8;
     ds.cascade->nodes[1]->thresh -= 0.095;
 }
+
+
+template class Array2d<double>;
+template class Array2d<int>;
+
+template class IntImage<double>;
+template class IntImage<int>;
