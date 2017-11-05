@@ -5,7 +5,10 @@ project(SRA_Challenge)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -DCPU_ONLY=1 -O3")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
-find_package(OpenCV  REQUIRED)
+set(OPENCV_PATH "/usr/local/" CACHE STRING "OpenCV Installation Path")
+set(OpenCV_DIR ${OPENCV_PATH})
+find_package(OpenCV PATHS ${OPENCV_PATH})
+#find_package(OpenCV  REQUIRED)
 set(EXTRA_LIBS "-lboost_system -lglog")
 
 set(ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
@@ -29,6 +32,7 @@ include_directories (
     "contour_estimation/include/sPb"
     "ENet/include"
     "scene_completion/include"
+    "caffe_enet/build/include"
     "caffe_enet/include"
 )
 

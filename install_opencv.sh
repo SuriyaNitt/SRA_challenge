@@ -7,7 +7,7 @@ if [ ! -f ./2.4.13.4.zip ]; then
     unzip *.zip
 fi
 cp ../opencv_CMakeLists.txt ./opencv*/CMakeLists.txt
-cd opencv*
+cd opencv-2*
 mkdir build
 cd build
 rm -r ./*
