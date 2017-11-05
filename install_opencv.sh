@@ -1,0 +1,9 @@
+mkdir opencv
+cd opencv
+wget https://github.com/opencv/opencv/archive/2.4.13.4.zip
+unzip *.zip
+cd opencv*
+mkdir build
+cd build
+cmake ..
+make -j4
