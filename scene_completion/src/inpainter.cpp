@@ -70,10 +70,10 @@ int Inpainter::checkValidInputs(){
 
 void Inpainter::inpaint(){
 
-    cv::namedWindow("updatedMask");
+    // cv::namedWindow("updatedMask");
     cv::namedWindow("inpaint");
-    cv::namedWindow("gradientX");
-    cv::namedWindow("gradientY");
+    // cv::namedWindow("gradientX");
+    // cv::namedWindow("gradientY");
 
     initializeMats();
     calculateGradients();
@@ -88,10 +88,10 @@ void Inpainter::inpaint(){
         updateMats();
         stay=checkEnd();
 
-        cv::imshow("updatedMask",updatedMask);
+        // cv::imshow("updatedMask",updatedMask);
         cv::imshow("inpaint",workImage);
-        cv::imshow("gradientX",gradientX);
-        cv::imshow("gradientY",gradientY);
+        // cv::imshow("gradientX",gradientX);
+        // cv::imshow("gradientY",gradientY);
         cv::waitKey(2);
     }
     result=workImage.clone();

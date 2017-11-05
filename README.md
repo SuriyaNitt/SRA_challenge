@@ -1,23 +1,38 @@
+Note: This project is only tested on Ubuntu 16.04
+
+How To Install:
+--------------
+
+There are 5 scripts to aid installation
+
+1. install_deps.sh - installs dependencies listed down in the Dependencies section
+2. install_opencv.sh - installs opencv locally inside the project folder
+3. install_caffe_enet.sh - builds modified version of caffe for ENet
+4. install_application.sh - builds the challenge application
+5. install_all.sh - installs all the above
+
 Assumptions:
+-----------
 
 1. The person of interest appears upright in the image.
 2. The scene is not too crowded so that there is sufficient gap between two person
-3. 
 
 Limitations:
+-----------
 
 1. Does not work with humans looking small ( this can be improved ).
 2. Does not work well with humans in scenes that are not street like.
 
 References:
+----------
 
 1. Centrist: A Visual Descriptor for Scene Categorization: https://smartech.gatech.edu/bitstream/handle/1853/31468/09-05.pdf
 2. Real-time Human Detection using contour cues: http://c2inet.sce.ntu.edu.sg/Jianxin/paper/ICRA_final.pdf
-3.
-4.
-5.
+3. ENet: A Deep Neural Network Architecture for Real-time Semantic Segmentaion: https://arxiv.org/pdf/1606.02147.pdf
+4. Region filling and Object Removal by Exemplar-Based Image Inpainting: http://www.irisa.fr/vista/Papers/2004_ip_criminisi.pdf
 
 Dependencies:
+------------
 
 1. boost - sudo apt install libboost1.63-dev
 2. boost-system - sudo apt install libboost-system1.63-dev
@@ -31,3 +46,5 @@ Dependencies:
 10. lmdb - sudo apt install liblmdb-dev
 11. LevelDB - sudo apt install libleveldb-dev
 12. snappy - sudo apt install libsnappy-dev
+13. atlas - sudo apt install libatlas-base-dev
+14. gtk2.0 - sudo apt install libgtk2.0-dev

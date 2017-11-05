@@ -108,10 +108,10 @@ int main(int argc, char *argv[])
         cv::rectangle(image1, cvPoint(humans[i].x,humans[i].y),cvPoint(humans[i].x + humans[i].width, humans[i].y + humans[i].height),cv::Scalar(0,255,0),2 );
     }
 
-    cv::imshow("result", image1);
-    cv::waitKey(gWaitTime);
-    cv::imshow("targetHuman", targetHumanImage);
-    cv::waitKey(gWaitTime);
+    // cv::imshow("result", image1);
+    // cv::waitKey(gWaitTime);
+    // cv::imshow("targetHuman", targetHumanImage);
+    // cv::waitKey(gWaitTime);
 
     /**********************************************
     * Human Contour detection
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
     cv::dilate(mask, mask, element);
     cv::erode(mask, mask, element);
     cv::dilate(mask, mask, element);
-    cv::imshow("Mask", mask);
+    // cv::imshow("Mask", mask);
 
     /**********************************************
     * Image inpainting, exemplar
