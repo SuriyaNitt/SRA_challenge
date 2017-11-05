@@ -5,6 +5,6 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-cv::Mat enet_segmentation(char** argv, cv::Mat);
+cv::Mat enet_segmentation(cv::Mat);
 
 #endif

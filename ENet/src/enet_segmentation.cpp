@@ -61,7 +61,7 @@ Classifier::Classifier(const string& model_file,
                        const string& trained_file) {
 
 
-  Caffe::set_mode(Caffe::GPU);
+  Caffe::set_mode(Caffe::CPU);
 
   /* Load the network. */
   net_.reset(new Net<float>(model_file, TEST));
@@ -141,9 +141,6 @@ void Classifier::Visualization(cv::Mat prediction_map, string LUT_file) {
   LUT(prediction_map, label_colours, output_image);
 
   classifierOutput = output_image.clone();
-
-  cv::imshow( "Display window", output_image);
-  cv::waitKey(0);
 }
 
 
@@ -202,15 +199,15 @@ void Classifier::Preprocess(const cv::Mat& img,
     << "Input channels are not wrapping the input layer of the network.";
 }
 
-cv::Mat enet_segmentation(char** argv, cv::Mat targetHumanImage) {
-  string model_file   = argv[0];
-  string trained_file = argv[1]; //for visualization
+cv::Mat enet_segmentation(cv::Mat targetHumanImage) {
+  string model_file   = "../ENet/enet_deploy_final.prototxt";
+  string trained_file = "../ENet/cityscapes_weights.caffemodel"; //for visualization
 
 
   Classifier classifier(model_file, trained_file);
-  string LUT_file = argv[2];
+  string LUT_file = "../ENet/cityscapes19.png";
 
-  std::cout << "---------- Semantic Segmentation for \n";
+  std::cout << "---------- Semantic Segmentation ----------\n";
 
   cv::Mat img = targetHumanImage.clone();
   CHECK(!img.empty()) << "Unable to decode image \n";

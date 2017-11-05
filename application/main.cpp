@@ -12,6 +12,7 @@
 
 cv::Point gClick(-1, -1);
 int gWaitTime = 30;
+cv::Rect localizedHuman(-1, -1, 0, 0);
 
 void on_mouse(int event, int x, int y, int flags, void *param) {
     if (event == cv::EVENT_LBUTTONDOWN) {
@@ -41,6 +42,11 @@ cv::Mat extract_human(cv::Mat fullImage, std::vector<cv::Rect> humans) {
     for (int i=0; i<numHumans; i++) {
         if (point_lies_inside_rect(humans[i], gClick)) {
             targetHuman = humans[i];
+            // targetHuman.x -= 0.05 * targetHuman.width;
+            // targetHuman.y -= 0.02 * targetHuman.height;
+            // targetHuman.width += 0.1 * targetHuman.width;
+            // targetHuman.height += 0.04 * targetHuman.height;
+            localizedHuman = targetHuman;
             break;
         } 
     }
@@ -79,7 +85,9 @@ int main(int argc, char *argv[])
 
     cv::Mat image1 = inputImage.clone();
     std::vector<cv::Rect> humans = human_detection(image1);
-    cv::Mat targetHumanImage = extract_human(image1, humans);
+    cv::Mat targetHumanImg = extract_human(image1, humans);
+    cv::Mat targetHumanImage;
+    targetHumanImg.copyTo(targetHumanImage);
 
     for(size_t i = 0; i < humans.size(); i++)
     {
@@ -95,41 +103,78 @@ int main(int argc, char *argv[])
     * Human Contour detection
     ***********************************************/    
 
-    cv::Mat gPb, gPb_thin, ucm;
-    std::vector<cv::Mat> gPb_ori;
+    // cv::Mat gPb, gPb_thin, ucm, bd, ll;
+    // std::vector<cv::Mat> gPb_ori;
 
-    cv::globalPb(targetHumanImage, gPb, gPb_thin, gPb_ori);
-    cv::contour2ucm(gPb, gPb_ori, ucm, SINGLE_SIZE);
+    // cv::globalPb(targetHumanImage, gPb, gPb_thin, gPb_ori);
+    // cv::contour2ucm(gPb, gPb_ori, ucm, SINGLE_SIZE);
 
-    cv::imshow("ucm", ucm);
-    cv::waitKey(gWaitTime*200);
+    // double thresh = 77;
+    // double c = (double)thresh/100-0.005;
+    // if(c<0.0) c=0.0;
+    // cv::ucm2seg(ucm, bd, ll, c, SINGLE_SIZE);
+
+    // cv::imshow("gPb", bd);
+    // cv::waitKey(gWaitTime*200);
 
     /**********************************************
     * Enet segmentation
     ***********************************************/
 
-    char *arguments[] = {"../ENet/enet_deploy_final.prototxt", \
-                    "../ENet/cityscapes_weights.caffemodel", \
-                    "../ENet/cityscapes19.png"};
-    cv::Mat segmentedImage = enet_segmentation(arguments, targetHumanImage);
+    cv::Mat segmentedImage = enet_segmentation(inputImage);
+    cv::Mat hsvImage       = segmentedImage.clone();
+    cv::cvtColor(segmentedImage, hsvImage, cv::COLOR_BGR2HSV);
+    
+    cv::Mat lower_red_hue_range;
+    cv::Mat upper_red_hue_range;
+    cv::inRange(hsvImage, cv::Scalar(0, 100, 100), cv::Scalar(10, 255, 255), lower_red_hue_range);
+    cv::inRange(hsvImage, cv::Scalar(160, 100, 100), cv::Scalar(179, 255, 255), upper_red_hue_range);
 
-    cv::imshow("enet", segmentedImage);
-    cv::waitKey(gWaitTime*200);
+    cv::Mat red_hue_image;
+    cv::addWeighted(lower_red_hue_range, 1.0, upper_red_hue_range, 1.0, 0.0, red_hue_image);
 
-    // /**********************************************
-    // * Image inpainting, exemplar
-    // ***********************************************/
-    // cv::Mat mask   = inputImage.clone();
-    // cv::Mat image2 = inputImage.clone();
-    // Inpainter i(image2, mask, 3);
-    // if (i.checkValidInputs() == i.CHECK_VALID) {
-    //     i.inpaint();
-    //     cv::imwrite("edited_output.jpg", i.result);
-    //     cv::imshow("Edited Output", i.result);
-    // }
-    // else {
-    //     std::cout<<std::endl<<"Error : invalid parameters"<<std::endl;
-    // }
+    cv::resize(red_hue_image, red_hue_image, cv::Size(inputImage.cols, inputImage.rows));
+    for(size_t i = 0; i < humans.size(); i++)
+    {
+        cv::rectangle(red_hue_image, cvPoint(humans[i].x,humans[i].y),cvPoint(humans[i].x + humans[i].width, humans[i].y + humans[i].height),cv::Scalar(0,255,0),2 );
+    }
+
+    targetHumanImage = extract_human(red_hue_image, humans);
+
+    cv::Mat mask = cv::Mat::zeros(inputImage.rows, inputImage.cols, CV_32F);
+    cv::copyMakeBorder(targetHumanImage, mask, localizedHuman.y, \
+                       inputImage.rows - (localizedHuman.y + localizedHuman.height), \
+                       localizedHuman.x, \
+                       inputImage.cols - (localizedHuman.x + localizedHuman.width), \
+                       cv::BORDER_CONSTANT | cv::BORDER_ISOLATED, \
+                       0);
+
+    cv::Mat element = getStructuringElement( cv::MORPH_ELLIPSE,
+                                       cv::Size(3, 3),
+                                       cv::Point(0, 0) );
+
+    //cv::erode(mask, mask, cv::Mat());
+    //cv::erode(mask, mask, cv::Mat());
+    // cv::dilate(mask, mask, cv::Mat());
+    cv::dilate(mask, mask, cv::Mat());
+    cv::imshow("Mask", mask);
+
+    /**********************************************
+    * Image inpainting, exemplar
+    ***********************************************/
+    cv::Mat image2 = inputImage.clone();
+    Inpainter i(image2, mask, 3);
+    if (i.checkValidInputs() == i.CHECK_VALID) {
+        std::cout << "Painting the patch\n";
+        i.inpaint();
+        cv::imwrite("edited_output.jpg", i.result);
+        cv::imshow("Edited Output", i.result);
+    }
+    else {
+        std::cout<<std::endl<<"Error : invalid parameters"<<std::endl;
+    }
+
+    cv::waitKey(0);
 
     return 0;
 }
