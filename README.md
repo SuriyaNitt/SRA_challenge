@@ -23,6 +23,16 @@ Limitations:
 1. Does not work with humans looking small ( this can be improved ).
 2. Does not work well with humans in scenes that are not street like.
 
+How to use:
+----------
+
+The executable will be placed inside the bin folder.
+Navigate to bin folder and run the app as 
+
+./intelligent_inpainting ../test_imgs/sample5.jpg
+
+Click on the human to be removed from the scene.
+
 References:
 ----------
 
