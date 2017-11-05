@@ -16,15 +16,17 @@ endif()
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
+set(OPENCV_INSTALL_PATH "/usr/local/" CACHE STRING "OpenCV Installation Path")
+
 # Following block can broke build in case of cross-compilng
 # but CMAKE_CROSSCOMPILING variable will be set only on project(OpenCV) command
 # so we will try to detect crosscompiling by presense of CMAKE_TOOLCHAIN_FILE
 if(NOT CMAKE_TOOLCHAIN_FILE)
   # it _must_ go before project(OpenCV) in order to work
   if(WIN32)
-    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Installation Directory")
+    set(CMAKE_INSTALL_PREFIX ${OPENCV_INSTALL_PATH} CACHE PATH "Installation Directory")
   else()
-    set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Installation Directory")
+    set(CMAKE_INSTALL_PREFIX ${OPENCV_INSTALL_PATH} CACHE PATH "Installation Directory")
   endif()
 else(NOT CMAKE_TOOLCHAIN_FILE)
   #Android: set output folder to ${CMAKE_BINARY_DIR}

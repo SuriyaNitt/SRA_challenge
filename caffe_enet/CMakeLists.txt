@@ -26,6 +26,9 @@ include(cmake/Misc.cmake)
 include(cmake/Summary.cmake)
 include(cmake/ConfigGen.cmake)
 
+set(OPENCV_PATH "/usr/local/" CACHE STRING "OpenCV Installation Path")
+find_package(OpenCV PATHS ${OPENCV_PATH})
+
 # ---[ Options
 caffe_option(CPU_ONLY  "Build Caffe without CUDA support" ON) # TODO: rename to USE_CUDA
 caffe_option(USE_CUDNN "Build Caffe with cuDNN library support" ON IF NOT CPU_ONLY)
@@ -35,7 +38,7 @@ set(python_version "2" CACHE STRING "Specify which Python version to use")
 caffe_option(BUILD_matlab "Build Matlab wrapper" OFF IF UNIX OR APPLE)
 caffe_option(BUILD_docs   "Build documentation" OFF IF UNIX OR APPLE)
 caffe_option(BUILD_python_layer "Build the Caffe Python layer" OFF)
-caffe_option(USE_OPENCV "Build with OpenCV support" OFF)
+caffe_option(USE_OPENCV "Build with OpenCV support" ON)
 caffe_option(USE_LEVELDB "Build with levelDB" ON)
 caffe_option(USE_LMDB "Build with lmdb" ON)
 caffe_option(ALLOW_LMDB_NOLOCK "Allow MDB_NOLOCK when reading LMDB files (only if necessary)" OFF)

@@ -1,3 +1,4 @@
+a=$(pwd)/opencv
 mkdir opencv
 cd opencv
 if [ ! -f ./2.4.13.4.zip ]; then
@@ -9,5 +10,5 @@ cd opencv*
 mkdir build
 cd build
 rm -r ./*
-cmake ..
+cmake -DOPENCV_INSTALL_PATH:STRING=$a ..
 make -j4
