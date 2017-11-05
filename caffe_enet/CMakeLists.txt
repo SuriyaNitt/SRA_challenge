@@ -27,6 +27,7 @@ include(cmake/Summary.cmake)
 include(cmake/ConfigGen.cmake)
 
 set(OPENCV_PATH "/usr/local/" CACHE STRING "OpenCV Installation Path")
+set(OpenCV_DIR ${OPENCV_PATH})
 find_package(OpenCV PATHS ${OPENCV_PATH})
 
 # ---[ Options

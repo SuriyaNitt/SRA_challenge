@@ -1,4 +1,4 @@
-a = $(pwd)/opencv
+a=$(pwd)/opencv/opencv_install
 cd caff*
 mkdir build
 cd build
