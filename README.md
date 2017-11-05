@@ -13,3 +13,17 @@ References:
 4.
 5.
 
+Dependencies:
+
+1. boost - sudo apt install libboost1.63-dev
+2. boost-system - sudo apt install libboost-system1.63-dev
+3. boost-thread - sudo apt install libboost-thread1.63-dev
+4. boost-filesystem - sudo apt install libboost-filesystem1.63-dev
+5. protobuf - sudo apt install libprotobuf-dev
+6. gflags - sudo apt install libgflags-dev
+7. glog - sudo apt install libgoogle-glog-dev
+8. protobuf-compiler - sudo apt install protobuf-compiler
+9. hdf5 - sudo apt install libhdf5-dev
+10. lmdb - sudo apt install liblmdb-dev
+11. LevelDB - sudo apt install libleveldb-dev
+12. snappy - sudo apt install libsnappy-dev
