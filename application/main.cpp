@@ -42,10 +42,10 @@ cv::Mat extract_human(cv::Mat fullImage, std::vector<cv::Rect> humans) {
     for (int i=0; i<numHumans; i++) {
         if (point_lies_inside_rect(humans[i], gClick)) {
             targetHuman = humans[i];
-            // targetHuman.x -= 0.05 * targetHuman.width;
-            // targetHuman.y -= 0.05 * targetHuman.height;
-            // targetHuman.width += 0.1 * targetHuman.width;
-            // targetHuman.height += 0.1 * targetHuman.height;
+            targetHuman.x -= 0.05 * targetHuman.width;
+            targetHuman.y -= 0.05 * targetHuman.height;
+            targetHuman.width += 0.1 * targetHuman.width;
+            targetHuman.height += 0.05 * targetHuman.height;
             localizedHuman = targetHuman;
             break;
         } 
@@ -173,11 +173,13 @@ int main(int argc, char *argv[])
                        cv::BORDER_CONSTANT | cv::BORDER_ISOLATED, \
                        0);
 
-    // cv::Mat element = getStructuringElement( cv::MORPH_ELLIPSE,
-    //                                    cv::Size(3, 3),
-    //                                    cv::Point(0, 0) );
+    cv::Mat element = getStructuringElement( cv::MORPH_ELLIPSE,
+                                       cv::Size(3, 3),
+                                       cv::Point(0, 0) );
 
-    // cv::dilate(mask, mask, element);
+    cv::dilate(mask, mask, element);
+    cv::erode(mask, mask, element);
+    cv::dilate(mask, mask, element);
     cv::imshow("Mask", mask);
 
     /**********************************************
