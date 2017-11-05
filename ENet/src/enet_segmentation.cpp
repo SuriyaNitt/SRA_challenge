@@ -141,6 +141,9 @@ void Classifier::Visualization(cv::Mat prediction_map, string LUT_file) {
   LUT(prediction_map, label_colours, output_image);
 
   classifierOutput = output_image.clone();
+
+  // cv::imshow("segmentation", output_image);
+  // cv::waitKey(0);
 }
 
 

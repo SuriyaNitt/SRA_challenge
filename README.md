@@ -1,9 +1,13 @@
 Assumptions:
 
 1. The person of interest appears upright in the image.
-2. The scene is not too crowded so that there is sufficient gap between two
-   person
+2. The scene is not too crowded so that there is sufficient gap between two person
 3. 
+
+Limitations:
+
+1. Does not work with humans looking small ( this can be improved ).
+2. Does not work well with humans in scenes that are not street like.
 
 References:
 

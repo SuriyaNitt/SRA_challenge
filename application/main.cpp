@@ -43,9 +43,9 @@ cv::Mat extract_human(cv::Mat fullImage, std::vector<cv::Rect> humans) {
         if (point_lies_inside_rect(humans[i], gClick)) {
             targetHuman = humans[i];
             // targetHuman.x -= 0.05 * targetHuman.width;
-            // targetHuman.y -= 0.02 * targetHuman.height;
+            // targetHuman.y -= 0.05 * targetHuman.height;
             // targetHuman.width += 0.1 * targetHuman.width;
-            // targetHuman.height += 0.04 * targetHuman.height;
+            // targetHuman.height += 0.1 * targetHuman.height;
             localizedHuman = targetHuman;
             break;
         } 
@@ -67,11 +67,19 @@ int main(int argc, char *argv[])
     char* imagePath = argv[1];
 
     cv::Mat inputImage = cv::imread(imagePath, CV_LOAD_IMAGE_COLOR);
+
     if(!inputImage.data){
         std::cout<<std::endl<<"Error unable to open input image"<<std::endl;
         return 0;
     }
 
+    int newH = inputImage.rows, newW = inputImage.cols;
+    if (inputImage.rows > 768)
+        newH = 768;
+    if (inputImage.cols > 1360)
+        newW = 1360;
+
+    cv::resize(inputImage, inputImage, cv::Size(newW, newH));
     cv::namedWindow("IIP", 1);
     cv::imshow("IIP", inputImage);
     while (gClick.x == -1) {
@@ -83,11 +91,17 @@ int main(int argc, char *argv[])
     * Human detection and extraction from the click
     ***********************************************/
 
-    cv::Mat image1 = inputImage.clone();
+    cv::Mat image1;
+    inputImage.copyTo(image1);
     std::vector<cv::Rect> humans = human_detection(image1);
     cv::Mat targetHumanImg = extract_human(image1, humans);
     cv::Mat targetHumanImage;
     targetHumanImg.copyTo(targetHumanImage);
+
+    if (localizedHuman.x == -1) {
+        std::cout << "No human detected in the region clicked!\n";
+        return 0;
+    }
 
     for(size_t i = 0; i < humans.size(); i++)
     {
@@ -121,8 +135,10 @@ int main(int argc, char *argv[])
     * Enet segmentation
     ***********************************************/
 
-    cv::Mat segmentedImage = enet_segmentation(inputImage);
-    cv::Mat hsvImage       = segmentedImage.clone();
+    cv::Mat segmentedImage, hsvImage;
+    inputImage.copyTo(segmentedImage);
+    segmentedImage = enet_segmentation(segmentedImage);
+    segmentedImage.copyTo(hsvImage);
     cv::cvtColor(segmentedImage, hsvImage, cv::COLOR_BGR2HSV);
     
     cv::Mat lower_red_hue_range;
@@ -140,6 +156,14 @@ int main(int argc, char *argv[])
     }
 
     targetHumanImage = extract_human(red_hue_image, humans);
+    // targetHumanImage = cv::Mat::ones(targetHumanImage.rows, \
+    //                                  targetHumanImage.cols, \
+    //                                  CV_8UC1);
+    // cv::threshold(targetHumanImage, \
+    //               targetHumanImage, \
+    //               0, \
+    //               255, \
+    //               0 );
 
     cv::Mat mask = cv::Mat::zeros(inputImage.rows, inputImage.cols, CV_32F);
     cv::copyMakeBorder(targetHumanImage, mask, localizedHuman.y, \
@@ -149,20 +173,19 @@ int main(int argc, char *argv[])
                        cv::BORDER_CONSTANT | cv::BORDER_ISOLATED, \
                        0);
 
-    cv::Mat element = getStructuringElement( cv::MORPH_ELLIPSE,
-                                       cv::Size(3, 3),
-                                       cv::Point(0, 0) );
+    // cv::Mat element = getStructuringElement( cv::MORPH_ELLIPSE,
+    //                                    cv::Size(3, 3),
+    //                                    cv::Point(0, 0) );
 
-    //cv::erode(mask, mask, cv::Mat());
-    //cv::erode(mask, mask, cv::Mat());
-    // cv::dilate(mask, mask, cv::Mat());
-    cv::dilate(mask, mask, cv::Mat());
+    // cv::dilate(mask, mask, element);
     cv::imshow("Mask", mask);
 
     /**********************************************
     * Image inpainting, exemplar
     ***********************************************/
     cv::Mat image2 = inputImage.clone();
+    cv::resize(image2, image2, cv::Size(320, 240));
+    cv::resize(mask, mask, cv::Size(320, 240));
     Inpainter i(image2, mask, 3);
     if (i.checkValidInputs() == i.CHECK_VALID) {
         std::cout << "Painting the patch\n";
