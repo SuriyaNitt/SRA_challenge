@@ -44,10 +44,10 @@ References:
 Dependencies:
 ------------
 
-1. boost - sudo apt install libboost1.63-dev
-2. boost-system - sudo apt install libboost-system1.63-dev
-3. boost-thread - sudo apt install libboost-thread1.63-dev
-4. boost-filesystem - sudo apt install libboost-filesystem1.63-dev
+1. boost - sudo apt install libboost1.58-dev (change to the version that is already available to your package manager)
+2. boost-system - sudo apt install libboost-system1.58-dev (change to the version that is already available to your package manager)
+3. boost-thread - sudo apt install libboost-thread1.58-dev (change to the version that is already available to your package manager)
+4. boost-filesystem - sudo apt install libboost-filesystem1.58-dev (change to the version that is already available to your package manager)
 5. protobuf - sudo apt install libprotobuf-dev
 6. gflags - sudo apt install libgflags-dev
 7. glog - sudo apt install libgoogle-glog-dev

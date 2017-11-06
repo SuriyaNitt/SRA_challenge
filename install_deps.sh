@@ -1,1 +1,1 @@
- apt install libboost1.63-dev libboost-system1.63-dev libboost-thread1.63-dev libboost-filesystem1.63-dev  libprotobuf-dev libgflags-dev libgoogle-glog-dev protobuf-compiler libhdf5-dev liblmdb-dev libleveldb-dev libsnappy-dev libatlas-base-dev libgtk2.0-dev
+ apt install libboost1.58-dev libboost-system1.58-dev libboost-thread1.58-dev libboost-filesystem1.58-dev  libprotobuf-dev libgflags-dev libgoogle-glog-dev protobuf-compiler libhdf5-dev liblmdb-dev libleveldb-dev libsnappy-dev libatlas-base-dev libgtk2.0-dev
