@@ -2,7 +2,7 @@ Note: This project is only tested on Ubuntu 16.04
 
 Pipeline Info can be found here: https://suriyanitt.github.io/imageinpainting.html
 
-Use the tag v1.2 for tested code
+Use the tag v1.3 for tested code
 
 How To Install:
 --------------
