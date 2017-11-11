@@ -1,3 +1,6 @@
+/**
+* Main application code
+*/
 
 #include <iostream>
 #include <opencv2/core/core.hpp>
@@ -5,14 +8,16 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "human_detection.h"
-#include "globalPb.h"
-#include "contour2ucm.h"
 #include "inpainter.h"
 #include "enet_segmentation.h"
 
 cv::Point gClick(-1, -1);
 int gWaitTime = 30;
-cv::Rect localizedHuman(-1, -1, 0, 0);
+cv::Rect gLocalizedHuman(-1, -1, 0, 0);
+
+/**
+*   On mouse callback to register mouse click
+*/
 
 void on_mouse(int event, int x, int y, int flags, void *param) {
     if (event == cv::EVENT_LBUTTONDOWN) {
@@ -23,6 +28,10 @@ void on_mouse(int event, int x, int y, int flags, void *param) {
         gClick = cv::Point(x,y);
     }
 }
+
+/**
+*   Function to check if a human is present in the region clicked by the user
+*/
 
 bool point_lies_inside_rect(cv::Rect rect, cv::Point point) {
     int x = point.x;
@@ -35,6 +44,10 @@ bool point_lies_inside_rect(cv::Rect rect, cv::Point point) {
         return false;
 }
 
+/**
+*   Extract the bounding box of human containing the point clicked by the user
+*/
+
 cv::Mat extract_human(cv::Mat fullImage, std::vector<cv::Rect> humans) {
     int numHumans = humans.size();
     cv::Rect targetHuman;
@@ -46,7 +59,7 @@ cv::Mat extract_human(cv::Mat fullImage, std::vector<cv::Rect> humans) {
             targetHuman.y -= 0.05 * targetHuman.height;
             targetHuman.width += 0.1 * targetHuman.width;
             targetHuman.height += 0.05 * targetHuman.height;
-            localizedHuman = targetHuman;
+            gLocalizedHuman = targetHuman;
             break;
         } 
     }
@@ -98,7 +111,7 @@ int main(int argc, char *argv[])
     cv::Mat targetHumanImage;
     targetHumanImg.copyTo(targetHumanImage);
 
-    if (localizedHuman.x == -1) {
+    if (gLocalizedHuman.x == -1) {
         std::cout << "No human detected in the region clicked!\n";
         return 0;
     }
@@ -107,29 +120,6 @@ int main(int argc, char *argv[])
     {
         cv::rectangle(image1, cvPoint(humans[i].x,humans[i].y),cvPoint(humans[i].x + humans[i].width, humans[i].y + humans[i].height),cv::Scalar(0,255,0),2 );
     }
-
-    // cv::imshow("result", image1);
-    // cv::waitKey(gWaitTime);
-    // cv::imshow("targetHuman", targetHumanImage);
-    // cv::waitKey(gWaitTime);
-
-    /**********************************************
-    * Human Contour detection
-    ***********************************************/    
-
-    // cv::Mat gPb, gPb_thin, ucm, bd, ll;
-    // std::vector<cv::Mat> gPb_ori;
-
-    // cv::globalPb(targetHumanImage, gPb, gPb_thin, gPb_ori);
-    // cv::contour2ucm(gPb, gPb_ori, ucm, SINGLE_SIZE);
-
-    // double thresh = 77;
-    // double c = (double)thresh/100-0.005;
-    // if(c<0.0) c=0.0;
-    // cv::ucm2seg(ucm, bd, ll, c, SINGLE_SIZE);
-
-    // cv::imshow("gPb", bd);
-    // cv::waitKey(gWaitTime*200);
 
     /**********************************************
     * Enet segmentation
@@ -156,20 +146,12 @@ int main(int argc, char *argv[])
     }
 
     targetHumanImage = extract_human(red_hue_image, humans);
-    // targetHumanImage = cv::Mat::ones(targetHumanImage.rows, \
-    //                                  targetHumanImage.cols, \
-    //                                  CV_8UC1);
-    // cv::threshold(targetHumanImage, \
-    //               targetHumanImage, \
-    //               0, \
-    //               255, \
-    //               0 );
 
     cv::Mat mask = cv::Mat::zeros(inputImage.rows, inputImage.cols, CV_32F);
-    cv::copyMakeBorder(targetHumanImage, mask, localizedHuman.y, \
-                       inputImage.rows - (localizedHuman.y + localizedHuman.height), \
-                       localizedHuman.x, \
-                       inputImage.cols - (localizedHuman.x + localizedHuman.width), \
+    cv::copyMakeBorder(targetHumanImage, mask, gLocalizedHuman.y, \
+                       inputImage.rows - (gLocalizedHuman.y + gLocalizedHuman.height), \
+                       gLocalizedHuman.x, \
+                       inputImage.cols - (gLocalizedHuman.x + gLocalizedHuman.width), \
                        cv::BORDER_CONSTANT | cv::BORDER_ISOLATED, \
                        0);
 
@@ -180,7 +162,6 @@ int main(int argc, char *argv[])
     cv::dilate(mask, mask, element);
     cv::erode(mask, mask, element);
     cv::dilate(mask, mask, element);
-    // cv::imshow("Mask", mask);
 
     /**********************************************
     * Image inpainting, exemplar

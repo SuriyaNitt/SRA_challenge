@@ -48,12 +48,12 @@ public:
     IntImage<T>& operator=(const IntImage<T>& source);//!< assignment opertator overloading.
     void Sobel(IntImage<double>& result,const bool useSqrt,const bool normalize); //!< performs sobel filtering.
 
-    using Array2d<T>::nrow; //!< 
-    using Array2d<T>::ncol; //!< 
-    using Array2d<T>::buf; //!< 
-    using Array2d<T>::p; //!< 
-    double variance; //!< 
-    int label; //!< 
+    using Array2d<T>::nrow; //!< using nrow variable from Array2d class
+    using Array2d<T>::ncol; //!< using ncol variable from Array2d class
+    using Array2d<T>::buf; //!< using buf variable from Array2d class
+    using Array2d<T>::p; //!< using p variable from Array2d class
+    double variance;
+    int label;
 
 }; //!< IntImage abstracts Integral image representations.
 //!< This class inherits Array2d class.
